@@ -1,166 +1,258 @@
-# How-To Guides
+# How to Build the Movie Pages
 
-## How to Add a New Page
+## Prerequisites
 
-1. **Create the page component** in `src/pages/`:
+- Project scaffold in place (Vite + React)
+- Tailwind CSS configured
+- shadcn/ui components installed (`card`, `badge`, etc.)
+- React Router DOM installed
+- `.env` file in the project root with:
 
-```jsx
-// src/pages/Dashboard.jsx
-import React from "react";
-import Container from "../components/layout/Container";
-import Card from "../components/ui/Card";
-
-export default function Dashboard() {
-  return (
-    <Container>
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <Card>
-        <p>Welcome to your dashboard!</p>
-      </Card>
-    </Container>
-  );
-}
+```env
+VITE_API_BASE_URL=https://api.themoviedb.org/3
+VITE_API_MOVIEDB_TOKEN=your_tmdb_api_key_here
 ```
 
-2. **Add the route** in `src/App.jsx`:
+---
+
+## Step 1: Create the API Client
+
+Create `src/utils/api.js`. This wraps axios with CRUD helpers and returns a consistent `{ success, data }` or `{ success, error }` shape.
+
+```js
+import axios from "axios";
+
+export class ApiClient {
+  constructor(baseURL = "") {
+    this.instance = axios.create({
+      baseURL,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  async request(config) {
+    try {
+      const res = await this.instance.request(config);
+      return { success: true, data: res.data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async getAll(url, config = {}) {
+    return this.request({ url, method: "GET", ...config });
+  }
+
+  async getOne(url, config = {}) {
+    return this.request({ url, method: "GET", ...config });
+  }
+}
+
+export default new ApiClient(import.meta.env.VITE_API_BASE_URL || "");
+```
+
+> Key methods used by the movie pages:
+> - `getAll(url, { params })` — fetch a list of movies
+> - `getOne(url, { params })` — fetch a single movie by ID
+
+---
+
+## Step 2: Configure Routing
+
+Update `src/main.jsx` to wrap the app in `<BrowserRouter>`:
 
 ```jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-// ... other imports
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App.jsx";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+);
+```
+
+Update `src/App.jsx` to define the routes:
+
+```jsx
+import { Routes, Route } from "react-router-dom";
+import Home from "@/pages/nonauth/Home";
+import MovieDetails from "@/pages/nonauth/MovieDetails";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        {/* Add your new route here */}
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/MovieDetails/:movieId" element={<MovieDetails />} />
+    </Routes>
   );
 }
+
+export default App;
 ```
 
-3. **Add navigation link** (optional) in `src/components/ui/Navbar.jsx` or `Sidebar.jsx`:
+> The `:movieId` param is extracted in `MovieDetails` via `useParams()`.
+
+---
+
+## Step 3: Build the Home Page
+
+Create `src/pages/nonauth/Home.jsx`.
+
+**What it does:**
+- On mount, calls `/movie/popular` from the TMDB API
+- Renders a responsive grid of movie cards
+- Each card links to the details page via `/MovieDetails/:id`
 
 ```jsx
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-
-<Link to="/dashboard" className="text-gray-700 hover:text-blue-600">
-  Dashboard
-</Link>
-```
-
-## How to Make a REST API Call
-
-The scaffold includes an Axios-based API client in `src/utils/api.js` with built-in CRUD methods.
-
-### Basic API Configuration
-
-Set your API base URL in a `.env` file:
-
-```bash
-VITE_API_BASE_URL=https://api.example.com
-```
-
-### Making API Calls
-
-```jsx
 import { useState, useEffect } from "react";
-import api from "../utils/api";
+import { ApiClient } from "@/utils/api";
 
-function MyComponent() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+function Home() {
+  const [movies, setMovies] = useState([]);
+  const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
-  // GET request - Fetch all items
+  const fetchMovies = async () => {
+    const res = await apiClient.getAll("/movie/popular", {
+      params: { api_key: import.meta.env.VITE_API_MOVIEDB_TOKEN },
+    });
+    if (res.success) {
+      setMovies(res.data.results ?? res.data);
+    } else {
+      console.error("Failed to fetch movies:", res.error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await api.getAll("/students");
-        setData(response.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchMovies();
   }, []);
 
-  // GET request - Fetch single item
-  const fetchStudent = async (id) => {
-    try {
-      const response = await api.getById("/students", id);
-      console.log(response.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // POST request - Create new item
-  const createStudent = async () => {
-    try {
-      const newStudent = { name: "Ada Lovelace", grade: "A" };
-      const response = await api.create("/students", newStudent);
-      setData([...data, response.data]);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  // PUT request - Update item
-  const updateStudent = async (id) => {
-    try {
-      const updates = { name: "Grace Hopper" };
-      const response = await api.update(`/students/${id}`, updates);
-      setData(data.map(item => item.id === id ? response.data : item));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  // DELETE request - Remove item
-  const deleteStudent = async (id) => {
-    try {
-      await api.delete(`/students/${id}`);
-      setData(data.filter(item => item.id !== id));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
   return (
-    <div>
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">Error: {error}</p>}
-      {/* Render your data here */}
+    <div className="flex flex-col p-1 w-1/2 mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Welcome to MovieDB</h1>
+      <p className="mb-4">Discover and explore your favorite movies.</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {movies.map((movie) => (
+          <Card key={movie.id}>
+            <CardHeader>
+              <CardTitle>{movie.title}</CardTitle>
+              <CardDescription>{movie.release_date}</CardDescription>
+              <img
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={movie.title}
+                className="w-full h-auto mt-2 rounded"
+              />
+            </CardHeader>
+            <CardContent>
+              <p>{movie.overview}</p>
+              <Link to={`/MovieDetails/${movie.id}`} className="text-blue-500 mt-2 inline-block">
+                View Details
+              </Link>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
+
+export default Home;
 ```
 
-### Available API Methods
+---
 
-- `api.getAll(endpoint)` - GET all items
-- `api.getById(endpoint, id)` - GET single item
-- `api.create(endpoint, data)` - POST new item
-- `api.update(endpoint, data)` - PUT update item
-- `api.delete(endpoint)` - DELETE item
-- `api.setToken(token)` - Set authorization token
+## Step 4: Build the Movie Details Page
 
-### Custom API Client
+Create `src/pages/nonauth/MovieDetails.jsx`.
 
-Create a custom client for different base URLs:
+**What it does:**
+- Reads `:movieId` from the URL params
+- Calls `/movie/:movieId` from the TMDB API
+- Displays full movie info: poster, genres, runtime, overview
+- Provides a "Back to Home" link
 
-```js
-import { ApiClient } from "./utils/api";
+```jsx
+import { Card, CardHeader, CardContent, CardTitle, CardFooter } from "@/components/ui/card";
+import { ApiClient } from "@/utils/api";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 
-const adminApi = new ApiClient("https://admin.example.com");
-adminApi.setToken("your-jwt-token");
+function MovieDetails() {
+  const [movie, setMovie] = useState(null);
+  const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
+  const { movieId } = useParams();
 
-const response = await adminApi.getAll("/users");
+  const fetchMovieDetails = async (movieId) => {
+    const res = await apiClient.getOne(`/movie/${movieId}`, {
+      params: { api_key: import.meta.env.VITE_API_MOVIEDB_TOKEN },
+    });
+    if (res.success) {
+      setMovie(res.data);
+    } else {
+      console.error("Failed to fetch movie details:", res.error);
+    }
+  };
+
+  useEffect(() => {
+    if (movieId) fetchMovieDetails(movieId);
+  }, [movieId]);
+
+  if (!movie) return <div>Loading...</div>;
+
+  return (
+    <div className="flex flex-col items-center p-1 w-1/2 mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>{movie.title}</CardTitle>
+          {movie.poster_path && (
+            <img
+              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+              alt={movie.title}
+            />
+          )}
+        </CardHeader>
+        <CardContent>
+          <p><strong>Release Date:</strong> {movie.release_date}</p>
+          <p><strong>Overview:</strong> {movie.overview}</p>
+          <p><strong>Genres:</strong> {movie.genres?.map((g) => g.name).join(", ")}</p>
+          <p><strong>Runtime:</strong> {movie.runtime} minutes</p>
+        </CardContent>
+        <CardFooter>
+          <Link to="/" className="text-blue-500">Back to Home</Link>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
+export default MovieDetails;
 ```
+
+---
+
+## Step 5: Run the App
+
+```bash
+npm run dev
+```
+
+Then open `http://localhost:5173` in your browser.
+
+---
+
+## Summary
+
+| Step | File | Purpose |
+|------|------|---------|
+| 1 | `src/utils/api.js` | Axios-based API client |
+| 2 | `src/main.jsx` + `src/App.jsx` | BrowserRouter + route definitions |
+| 3 | `src/pages/nonauth/Home.jsx` | Popular movies grid |
+| 4 | `src/pages/nonauth/MovieDetails.jsx` | Single movie detail view |
+| 5 | — | Run with `npm run dev` |
