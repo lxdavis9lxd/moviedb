@@ -5,13 +5,14 @@ import { ApiClient } from "@/utils/api";
 import { useEffect } from "react";
 function Home() {
   const [movies, setMovies] = useState([]);
-  const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL + "movie/");
-  apiClient.setToken(import.meta.env.VITE_API_MOVIEDB_TOKEN);
+  const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
 
   const fetchMovies = async () => {
-    const res = await apiClient.getAll("/movies");
+    const res = await apiClient.getAll("/movie/popular", {
+      params: { api_key: import.meta.env.VITE_API_MOVIEDB_TOKEN },
+    });
     if (res.success) {
-      setMovies(res.data);
+      setMovies(res.data.results ?? res.data);
     } else {
       console.error("Failed to fetch movies:", res.error);
     }
@@ -28,6 +29,11 @@ function Home() {
             <CardHeader>
               <CardTitle>{movie.title}</CardTitle>
               <CardDescription>{movie.release_date}</CardDescription>
+              <img
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={movie.title}
+                className="w-full h-auto mt-2 rounded"
+              />  
             </CardHeader>
             <CardContent>
               <p>{movie.overview}</p>
