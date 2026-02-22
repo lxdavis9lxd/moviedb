@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { ApiClient } from "@/utils/api";
 import { useEffect } from "react";
+
 function Home() {
   const [movies, setMovies] = useState([]);
   const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL);
@@ -20,7 +21,7 @@ function Home() {
 
   useEffect(() => {fetchMovies();}, []);
     return (
-    <div className="p-4">
+    <div className="flex flex-col  p-1 w-1/2 mx-auto">
       <h1 className="text-2xl font-bold mb-4">Welcome to MovieDB</h1>
       <p className="mb-4">Discover and explore your favorite movies.</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -37,7 +38,7 @@ function Home() {
             </CardHeader>
             <CardContent>
               <p>{movie.overview}</p>
-              <Link to={`/movies/${movie.id}`} className="text-blue-500 mt-2 inline-block">
+              <Link to={`/MovieDetails/${movie.id}`} className="text-blue-500 mt-2 inline-block">
                 View Details
               </Link>
             </CardContent>
