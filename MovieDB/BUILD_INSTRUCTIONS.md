@@ -34,7 +34,15 @@ npm install
 
 ---
 
-## Step 2: Create the Environment File
+## Step 2: Get a TMDB API Key
+
+1. Go to [https://www.themoviedb.org/](https://www.themoviedb.org/)
+2. Create an account
+3. Go to **Settings → API**
+4. Request an API key (select the **Developer** option)
+5. Copy your API key
+
+## Step 3: Create the Environment File
 
 In the root of the `MovieDB` folder, create a `.env` file with your TMDB credentials:
 
@@ -43,11 +51,11 @@ VITE_API_BASE_URL=https://api.themoviedb.org/3
 VITE_API_MOVIEDB_TOKEN=your_tmdb_api_key_here
 ```
 
-> Replace `your_tmdb_api_key_here` with your actual TMDB API key from your TMDB account dashboard.
+> Replace `your_tmdb_api_key_here` with the API key you copied in Step 2.
 
 ---
 
-## Step 3: Update `vite.config.mts`
+## Step 4: Update `vite.config.mts`
 
 Confirm your `vite.config.mts` has the `@` alias pointing to `./src` and the dev server running on port 3000. Replace the file contents with:
 
@@ -72,7 +80,7 @@ export default defineConfig({
 
 ---
 
-## Step 4: Create the API Client
+## Step 5: Create the API Client
 
 Create the file `src/utils/api.js`. This wraps Axios with CRUD helpers and returns a consistent `{ success, data }` or `{ success, error }` shape.
 
@@ -146,7 +154,7 @@ export default new ApiClient(import.meta.env.VITE_API_BASE_URL || "");
 
 ---
 
-## Step 5: Configure Routing in `main.jsx`
+## Step 6: Configure Routing in `main.jsx`
 
 Replace `src/main.jsx` with the following to wrap the app in `<BrowserRouter>`:
 
@@ -168,7 +176,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
 ---
 
-## Step 6: Define Routes in `App.jsx`
+## Step 7: Define Routes in `App.jsx`
 
 Replace `src/App.jsx` with:
 
@@ -203,7 +211,7 @@ export default App;
 
 ---
 
-## Step 7: Build the Navbar Component
+## Step 8: Build the Navbar Component
 
 Create the file `src/components/layout/Navbar.jsx`:
 
@@ -243,7 +251,7 @@ export default Navbar;
 
 ---
 
-## Step 8: Build the Home Page
+## Step 9: Build the Home Page
 
 Create the folder `src/pages/nonauth/` if it does not exist, then create `src/pages/nonauth/Home.jsx`:
 
@@ -312,7 +320,7 @@ export default Home;
 
 ---
 
-## Step 9: Build the Movie Details Page
+## Step 10: Build the Movie Details Page
 
 Create `src/pages/nonauth/MovieDetails.jsx`:
 
@@ -388,7 +396,7 @@ export default MovieDetails;
 
 ---
 
-## Step 10: Run the App
+## Step 11: Run the App
 
 Start the development server:
 
@@ -406,14 +414,14 @@ You should see a grid of popular movies. Click **View Details** on any movie to 
 
 | Step | File | Purpose |
 |------|------|---------|
-| 2 | `.env` | TMDB API base URL and token |
-| 3 | `vite.config.mts` | `@` alias + dev server port 3000 |
-| 4 | `src/utils/api.js` | Axios-based API client with CRUD helpers |
-| 5 | `src/main.jsx` | React entry point wrapped in `<BrowserRouter>` |
-| 6 | `src/App.jsx` | Route definitions for `/` and `/MovieDetails/:movieId` |
-| 7 | `src/components/layout/Navbar.jsx` | Top navigation bar with Home / Favorite / Sign In links |
-| 8 | `src/pages/nonauth/Home.jsx` | Popular movies grid with card layout |
-| 9 | `src/pages/nonauth/MovieDetails.jsx` | Individual movie detail view |
+| 3 | `.env` | TMDB API base URL and token |
+| 4 | `vite.config.mts` | `@` alias + dev server port 3000 |
+| 5 | `src/utils/api.js` | Axios-based API client with CRUD helpers |
+| 6 | `src/main.jsx` | React entry point wrapped in `<BrowserRouter>` |
+| 7 | `src/App.jsx` | Route definitions for `/` and `/MovieDetails/:movieId` |
+| 8 | `src/components/layout/Navbar.jsx` | Top navigation bar with Home / Favorite / Sign In links |
+| 9 | `src/pages/nonauth/Home.jsx` | Popular movies grid with card layout |
+| 10 | `src/pages/nonauth/MovieDetails.jsx` | Individual movie detail view |
 
 ---
 
