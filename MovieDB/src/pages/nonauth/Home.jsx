@@ -22,7 +22,7 @@ function Home() {
   useEffect(() => {fetchMovies();}, []);
     return (
     <div className="flex flex-col  p-1 w-1/2 mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Welcome to MovieDBv1</h1>
+      <h1 className="text-2xl font-bold mb-4">Welcome to MovieDBv3</h1>
       <p className="mb-4">Discover and explore your favorite movies.</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {movies.map((movie) => (
