@@ -1,29 +1,27 @@
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem} from "../ui/navigation-menu";
-
 import { Link } from "react-router-dom";
 
 function Navbar() {
   return (
-    <NavigationMenu className="bg-gray-800 text-white p-4 w-full max-w-full">
-      <NavigationMenuList className="flex w-full space-x-4">
-        <NavigationMenuItem className="mr-auto">
+    <nav className="bg-gray-800 text-white p-4 w-full max-w-full">
+      <ul className="flex w-full space-x-4">
+        <li className="mr-auto">
           <Link to="/" className="hover:text-gray-300">
             Home
           </Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem className="ml-auto">
-          <Link to="" className="hover:text-gray-300">
-           Favorite
+        </li>
+        <li className="ml-auto">
+          <Link to="/search" className="hover:text-gray-300">
+           Search
           </Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem className="ml-8">
+        </li>
+        <li className="ml-8">
           <Link to="" className="hover:text-gray-300">
            Sign In
           </Link>
-        </NavigationMenuItem>
+        </li>
          {/* Add more navigation items as needed */}
-      </NavigationMenuList>
-    </NavigationMenu>
+      </ul>
+    </nav>
   );
 }
 
